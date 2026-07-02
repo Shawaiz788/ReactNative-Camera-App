@@ -1,5 +1,7 @@
 import CustomButton from '@/components/CustomButton'
+import ExposureControls from '@/components/ExposureControls'
 import { ThemedText } from '@/components/themed-text'
+import ZoomControls from '@/components/ZoomControls'
 import { FontAwesome5 } from '@expo/vector-icons'
 import { BlurView } from 'expo-blur'
 import { Redirect, useRouter } from 'expo-router'
@@ -25,6 +27,8 @@ const index = () => {
   const [exposure, setExposure] = React.useState(0);
   const [flash, setFlash] = React.useState<"off" | "on">("off");
   const [torch, setTorch] = React.useState<"off" | "on">("off");
+  const [showZoomControls, setShowZoomControls] = React.useState(false);
+  const [showExposureControls, setShowExposureControls] = React.useState(false);
   const camera = React.useRef<Camera>(null)
   const router = useRouter();
 
@@ -33,7 +37,7 @@ const index = () => {
       if (camera.current === null) throw new Error("Camera ref is null!");
       console.log('Taking a picture..')
       const photo = await camera.current.takePhoto({
-        flash: flash,
+        flash: torch,
         enableShutterSound: false
       })
 
@@ -68,6 +72,7 @@ const index = () => {
         resizeMode='cover'
         zoom={zoom}
         exposure={exposure}
+        torch={torch}
         video
         photo
       />
@@ -90,73 +95,91 @@ const index = () => {
 
     </View>
 
-    <View style={{ flex: 1 }}>
+    {showZoomControls ? (
+      <ZoomControls
+        setZoom={setZoom}
+        setShowZoomControls={setShowZoomControls}
+        zoom={zoom ?? 1}
+      />
+    ) : showExposureControls ? (
+      <ExposureControls
+        setExposure={setExposure}
+        setShowExposureControls={setShowExposureControls}
+        exposure={exposure}
+      />
+    ) : (
+      <View style={{ flex: 1 }}>
 
-      <View style={{ flex: 0.7 }}>
-        <ThemedText>Max FPS:{format?.maxFps}</ThemedText>
-        <ThemedText>Width:{format?.photoWidth}
-          Height:{" "}{format?.photoHeight}
-        </ThemedText>
-        <ThemedText>Camera: {device.name}</ThemedText>
+        <View style={{ flex: 0.7 }}>
+          <ThemedText>Max FPS:{format?.maxFps}</ThemedText>
+          <ThemedText>Width:{format?.photoWidth}
+            Height:{" "}{format?.photoHeight}
+          </ThemedText>
+          <ThemedText>Camera: {device.name}</ThemedText>
+        </View>
+
+        <View style={{ flex: 0.7, flexDirection: 'row', justifyContent: 'space-evenly' }}>
+          <CustomButton
+            iconName={torch === "on" ? "flashlight" : "flashlight-outline"}
+            onPress={() => setTorch((t) => (t === "off" ? "on" : "off"))}
+            containerStyle={{ alignSelf: 'center' }}
+          />
+          <CustomButton
+            iconName="camera-reverse-outline"
+            onPress={() => setCameraPosition((p) => (p === "back" ? "front" : "back"))}
+            containerStyle={{ alignSelf: 'center' }}
+          />
+
+          <CustomButton
+            iconName="image-outline"
+            onPress={() => {
+              const link = Platform.select({
+                ios: 'photos-redirect://',
+                android: 'content://media/external/images/media',
+              });
+              Linking.openURL(link!)
+            }}
+            containerStyle={{ alignSelf: 'center' }}
+          />
+
+          <CustomButton
+            iconName={"settings-outline"}
+            onPress={() => router.push('/_sitemap')}
+            containerStyle={{ alignSelf: 'center' }}
+          />
+        </View>
+
+        <View style={{
+          flex: 1.1,
+          flexDirection: 'row',
+          justifyContent: 'space-evenly',
+          alignItems: 'center'
+        }}>
+
+
+          <CustomButton
+            iconSize={40}
+            title="+/-"
+            onPress={() => setShowExposureControls((s) => !s)}
+            containerStyle={{ alignSelf: "center" }}
+          />
+          <TouchableHighlight
+            onPress={takePicture}
+          >
+            <FontAwesome5 name='dot-circle' size={55} color={'white'} />
+          </TouchableHighlight>
+
+          <CustomButton
+            iconSize={40}
+            title="1x"
+            onPress={() => setShowZoomControls((s) => !s)}
+            containerStyle={{ alignSelf: "center" }}
+          />
+
+        </View>
       </View>
+    )}
 
-      <View style={{ flex: 0.7, flexDirection: 'row', justifyContent: 'space-evenly' }}></View>
-      <CustomButton
-        iconName={torch === "on" ? "flashlight" : "flashlight-outline"}
-        onPress={() => setTorch((t) => (t === "off" ? "on" : "off"))}
-      />
-      <CustomButton
-        iconName="camera-reverse-outline"
-        onPress={() => setCameraPosition((p) => (p === "back" ? "front" : "back"))}
-        containerStyle={{ alignSelf: 'center' }}
-      />
-
-      <CustomButton
-        iconName="image-outline"
-        onPress={() => {
-          const link = Platform.select({
-            ios: 'photos-redirect://',
-            android: 'content://media/external/images/media',
-          });
-          Linking.openURL(link!)
-        }}
-        containerStyle={{ alignSelf: 'center' }}
-      />
-
-      <CustomButton
-        iconName={"settings-outline"}
-        onPress={() => router.push('/_sitemap')}
-        containerStyle={{ alignSelf: 'center' }}
-      />
-    </View>
-    <View style={{
-      flex: 1.1,
-      flexDirection: 'row',
-      justifyContent: 'space-evenly',
-      alignItems: 'center'
-    }}>
-
-
-      <CustomButton
-        iconSize={40}
-        title="+/-"
-        onPress={() => setShowZoomControls((s) => !s)}
-        containerStyle={{ alignSelf: "center" }}
-      />
-      <TouchableHighlight
-        onPress={takePicture}
-      >
-        <FontAwesome5 name='dot-circle' size={55} color={'white'} />
-      </TouchableHighlight>
-
-      <CustomButton
-        iconSize={40}
-        title="1x"
-        onPress={() => setShowExposureControls((s) => !s)}
-        containerStyle={{ alignSelf: "center" }}
-      />
-
-    </View>
   </SafeAreaView>
   )
 }

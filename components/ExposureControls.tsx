@@ -1,4 +1,6 @@
+import React from "react";
 import {
+    Platform,
     Text,
     TouchableHighlight,
     TouchableOpacity,
@@ -7,41 +9,36 @@ import {
 } from "react-native";
 import Animated, { BounceIn } from "react-native-reanimated";
 
-const MIN_ZOOM = 1;
-const MAX_ZOOM = 128;
-const NEUTRAL_ZOOM = 1;
-const zoomOptions = [1, 2, 3, 4, 5];
+const exposureOptionsAndroid = [-10, -5, 0, 5, 10];
+const exposureOptionsIOS = [-2, -1, 0, 1, 2];
+const exposureOptions =
+    Platform.OS === "android" ? exposureOptionsAndroid : exposureOptionsIOS;
 
-export default function ZoomControls({
-    setZoom,
-    setShowZoomControls,
-    zoom,
+export default function ExposureControls({
+    setExposure,
+    setShowExposureControls,
+    exposure,
 }: {
-    setZoom: (zoom: number) => void;
-    setShowZoomControls: (show: boolean) => void;
-    zoom: number;
+    setExposure: (exposure: number) => void;
+    setShowExposureControls: (show: boolean) => void;
+    exposure: number;
 }) {
     const { width, height } = useWindowDimensions();
     const radius = Math.min(width, height - 100) * 0.3;
 
-    const handleZoomPress = (zoomFactor: number) => {
-        if (zoomFactor === -1) {
-            setZoom(NEUTRAL_ZOOM);
-        } else {
-            const newZoom = Math.min(Math.max(zoomFactor, MIN_ZOOM), MAX_ZOOM);
-            setZoom(newZoom);
-        }
+    const handleExposurePress = (exposureValue: number) => {
+        setExposure(exposureValue);
     };
 
-    const centerX = width - 55;
+    const centerX = 55;
     const centerY = height / 4 + 25;
 
     return (
         <View style={{ flex: 1, padding: 10 }}>
-            {zoomOptions.map((z, i) => {
-                const minAngle = Math.PI - Math.PI / 3;
-                const maxAngle = Math.PI + Math.PI / 3;
-                const angle = minAngle + (i / (zoomOptions.length - 1)) * (maxAngle - minAngle);
+            {exposureOptions.map((exp, i) => {
+                const minAngle = -Math.PI / 3;
+                const maxAngle = Math.PI / 3;
+                const angle = minAngle + (i / (exposureOptions.length - 1)) * (maxAngle - minAngle);
 
                 const x = centerX + Math.cos(angle) * radius - 25;
                 const y = centerY + Math.sin(angle) * radius - 25;
@@ -57,23 +54,23 @@ export default function ZoomControls({
                         }}
                     >
                         <TouchableHighlight
-                            onPress={() => handleZoomPress(z)}
+                            onPress={() => handleExposurePress(exp)}
                             style={{
                                 width: 50,
                                 height: 50,
                                 borderRadius: 25,
-                                backgroundColor: zoom === z ? "#ffffff" : "#ffffff30",
+                                backgroundColor: exposure === exp ? "#ffffff" : "#ffffff30",
                                 justifyContent: "center",
                                 alignItems: "center",
                             }}
                         >
                             <Text
                                 style={{
-                                    color: zoom === z ? "black" : "white",
+                                    color: exposure === exp ? "black" : "white",
                                     fontWeight: "600",
                                 }}
                             >
-                                {z}x
+                                {exp > 0 ? `+${exp}` : exp}
                             </Text>
                         </TouchableHighlight>
                     </Animated.View>
@@ -81,7 +78,7 @@ export default function ZoomControls({
             })}
 
             <TouchableOpacity
-                onPress={() => setShowZoomControls(false)}
+                onPress={() => setShowExposureControls(false)}
                 style={{
                     width: 50,
                     height: 50,
@@ -90,7 +87,7 @@ export default function ZoomControls({
                     justifyContent: "center",
                     alignItems: "center",
                     position: "absolute",
-                    right: 30,
+                    left: 30,
                     top: height / 4,
                 }}
             >
