@@ -30,7 +30,23 @@ const index = () => {
 
   const takePicture = async () => {
     try {
-      if (camera.current === null) throw new Error("Camera ref is null!")
+      if (camera.current === null) throw new Error("Camera ref is null!");
+      console.log('Taking a picture..')
+      const photo = await camera.current.takePhoto({
+        flash: flash,
+        enableShutterSound: false
+      })
+
+      const video = await camera.current.startRecording({
+        onRecordingError: (error) => console.log(error),
+        onRecordingFinished: (video) => console.log(video)
+      });
+      router.push({
+        pathname: '/media',
+        params: {
+          media: photo.path, type: 'photo'
+        },
+      })
     } catch (e) {
       console.log(e)
     }
@@ -52,6 +68,8 @@ const index = () => {
         resizeMode='cover'
         zoom={zoom}
         exposure={exposure}
+        video
+        photo
       />
       <BlurView
         intensity={100}
@@ -117,12 +135,26 @@ const index = () => {
       justifyContent: 'space-evenly',
       alignItems: 'center'
     }}>
+
+
+      <CustomButton
+        iconSize={40}
+        title="+/-"
+        onPress={() => setShowZoomControls((s) => !s)}
+        containerStyle={{ alignSelf: "center" }}
+      />
       <TouchableHighlight
         onPress={takePicture}
       >
-
         <FontAwesome5 name='dot-circle' size={55} color={'white'} />
       </TouchableHighlight>
+
+      <CustomButton
+        iconSize={40}
+        title="1x"
+        onPress={() => setShowExposureControls((s) => !s)}
+        containerStyle={{ alignSelf: "center" }}
+      />
 
     </View>
   </SafeAreaView>
