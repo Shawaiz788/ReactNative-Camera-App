@@ -2,6 +2,10 @@
 
 A high-performance, cross-platform Camera Application built using **React Native**, **Expo**, and **React Native Vision Camera**. The app features advanced camera controls, smooth animations, and direct gallery integration.
 
+
+https://github.com/user-attachments/assets/4e0989c6-05b6-4b9f-83ee-a1f6b109d91b
+
+
 ---
 
 ## ✨ Features
